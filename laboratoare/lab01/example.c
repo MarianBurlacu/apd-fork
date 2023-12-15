@@ -4,9 +4,15 @@
 
 #define NUM_THREADS 2
 
-void *f(void *arg) {
+void *f0(void *arg) {
   long id = *(long *)arg;
   printf("Hello World din thread-ul %ld!\n", id);
+  pthread_exit(NULL);
+}
+
+void *f1(void *arg) {
+  long id = *(long *)arg;
+  printf("Bye World din thread-ul %ld!\n", id);
   pthread_exit(NULL);
 }
 
@@ -17,12 +23,20 @@ int main(int argc, char *argv[]) {
   void *status;
   long ids[NUM_THREADS];
 
-  for (id = 0; id < NUM_THREADS; id++) {
-    ids[id] = id;
-    r = pthread_create(&threads[id], NULL, f, &ids[id]);
+  void *(*function)();
 
+  for (long id = 0; id < NUM_THREADS; id++) {
+    if (id == 0) {
+      function = &f0;
+    } else {
+      function = &f1;
+    }
+
+    ids[id] = id;
+
+    r = pthread_create(&threads[id], NULL, function, &ids[id]);
     if (r) {
-      printf("Eroare la crearea thread-ului %ld\n", id);
+      printf("Eroare la crearea thread-ului %ld.\n", ids[id]);
       exit(-1);
     }
   }
